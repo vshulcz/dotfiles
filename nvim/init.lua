@@ -82,3 +82,15 @@ vim.keymap.set("n", "<leader>bd", ":bdelete<CR>", { desc = "Close buffer" })
 
 vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Diagnostics under cursor" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setqflist, { desc = "Diagnostics list" })
+
+require("go").setup({
+  gofmt = "gofumpt",
+  max_line_len = 120,
+  tag_transform = false,
+  test_dir = "",
+  comment_placeholder = "",
+  verbose = false,
+  lsp_cfg = true,
+  lsp_gofumpt = true,
+})
+
