@@ -79,3 +79,6 @@ vim.keymap.set("n", "<Tab>", ":BufferLineCycleNext<CR>", { desc = "Next buffer" 
 vim.keymap.set("n", "<S-Tab>", ":BufferLineCyclePrev<CR>", { desc = "Previous buffer" })
 
 vim.keymap.set("n", "<leader>bd", ":bdelete<CR>", { desc = "Close buffer" })
+
+vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Diagnostics under cursor" })
+vim.keymap.set("n", "<leader>q", vim.diagnostic.setqflist, { desc = "Diagnostics list" })
