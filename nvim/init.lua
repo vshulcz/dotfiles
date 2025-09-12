@@ -7,8 +7,11 @@ vim.o.termguicolors = true
 
 local lspconfig = require("lspconfig")
 lspconfig.gopls.setup({
-	capabilities = require("cmp_nvim_lsp").default_capabilities(),
+    capabilities = require("cmp_nvim_lsp").default_capabilities(),
 })
+
+vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" })
+vim.keymap.set("i", "<C-h>", vim.lsp.buf.signature_help, { desc = "Signature help" })
 
 local cmp = require("cmp")
 cmp.setup({
@@ -17,10 +20,16 @@ cmp.setup({
         { name = "buffer" },
         { name = "path" },
     },
-	mapping = cmp.mapping.preset.insert({
-		["<C-Space>"] = cmp.mapping.complete(),
-		["<CR>"] = cmp.mapping.confirm({ select = true }),
-	}),
+    mapping = cmp.mapping.preset.insert({
+	["<C-Space>"] = cmp.mapping.complete(),
+	["<CR>"] = cmp.mapping.confirm({ select = true }),
+        ["Right"] = function(fallback)
+            fallback()
+        end,
+        ["Tab"] = function(fallback)
+	    fallback()
+        end,
+    }),
 })
 
 require("nvim-treesitter.configs").setup({
@@ -78,19 +87,33 @@ require("bufferline").setup({
 vim.keymap.set("n", "<Tab>", ":BufferLineCycleNext<CR>", { desc = "Next buffer" })
 vim.keymap.set("n", "<S-Tab>", ":BufferLineCyclePrev<CR>", { desc = "Previous buffer" })
 
-vim.keymap.set("n", "<leader>bd", ":bdelete<CR>", { desc = "Close buffer" })
+vim.keymap.set("n", "<leader>bd", function()
+    local current = vim.api.nvim_get_current_buf(),
+    vim.cmd("BufferLineCyclePrev")
+    vim.cmd("bdelete " .. current)
+end, { desc = "Close buffer and go prev" })
 
 vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Diagnostics under cursor" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setqflist, { desc = "Diagnostics list" })
 
 require("go").setup({
-  gofmt = "gofumpt",
-  max_line_len = 120,
-  tag_transform = false,
-  test_dir = "",
-  comment_placeholder = "",
-  verbose = false,
-  lsp_cfg = true,
-  lsp_gofumpt = true,
+    gofmt = "gofumpt",
+    tag_transform = false,
+    verbose = false,
+    lsp_cfg = true,
+    lsp_gofumpt = true,
+    lsp_inlay_hints = { enable = false },
+    lsp_cfg_extra = {
+	settings = {
+            gopls = {
+              	gofumpt = true,
+              	usePlaceholders = false,
+              	analyses = {
+                    unusedparams = true,
+		},
+              	staticchek = true,
+            },
+    	},
+    },
 })
 
