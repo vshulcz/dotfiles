@@ -9,6 +9,8 @@ Personal macOS dotfiles managed with [chezmoi](https://chezmoi.io).
 | `~/.config/aerospace/aerospace.toml` | [AeroSpace](https://github.com/nikitabobko/AeroSpace) tiling window manager |
 | `~/.config/opencode/AGENTS.md` | [opencode](https://opencode.ai) AI agent instructions (Caveman mode) |
 | `~/.config/starship.toml` | [Starship](https://starship.rs) prompt — Tokyo Night powerline style |
+| `~/.gitconfig` | Git config — rebase pulls, auto push upstream, auto stash |
+| `~/.gitignore_global` | Global gitignore — `.DS_Store`, `.env`, `.idea/`, `.vscode/` |
 
 ## Install on a new machine
 
