@@ -8,6 +8,7 @@ Personal macOS dotfiles managed with [chezmoi](https://chezmoi.io).
 |------|-------------|
 | `~/.config/aerospace/aerospace.toml` | [AeroSpace](https://github.com/nikitabobko/AeroSpace) tiling window manager |
 | `~/.config/opencode/AGENTS.md` | [opencode](https://opencode.ai) AI agent instructions (Caveman mode) |
+| `~/.config/starship.toml` | [Starship](https://starship.rs) prompt — Tokyo Night powerline style |
 
 ## Install on a new machine
 
@@ -20,6 +21,13 @@ chezmoi init --apply https://github.com/vshulcz/dotfiles
 
 # 3. Install AeroSpace
 brew install --cask nikitabobko/tap/aerospace
+
+# 4. Install Starship
+brew install starship
+
+# 5. Install JetBrainsMono Nerd Font (required for prompt icons)
+brew install --cask font-jetbrains-mono-nerd-font
+# Then set the font in your terminal preferences
 ```
 
 ## Daily workflow
