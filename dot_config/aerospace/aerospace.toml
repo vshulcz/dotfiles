@@ -12,12 +12,12 @@ outer.top        = 8
 outer.right      = 8
 
 # ──────────────────────────────────────────
-# ВОРКСПЕЙСЫ → МОНИТОРЫ
-# 1 терминалы   built-in
-# 2 IDE/заметки built-in
-# 3 браузеры    secondary
-# 4 общение     secondary
-# 5 музыка      built-in
+# WORKSPACES → MONITORS
+# 1  terminals   built-in
+# 2  IDE/notes   built-in
+# 3  browsers    secondary
+# 4  communication  secondary
+# 5  music       built-in
 # ──────────────────────────────────────────
 [workspace-to-monitor-force-assignment]
 1 = 'built-in'
@@ -27,25 +27,25 @@ outer.right      = 8
 5 = 'built-in'
 
 # ──────────────────────────────────────────
-# ПРИЛОЖЕНИЯ → ВОРКСПЕЙСЫ
+# APP → WORKSPACE RULES
 # ──────────────────────────────────────────
 
-# 1 — Терминалы
+# 1 — Terminals
 [[on-window-detected]]
 if.app-name-regex-substring = 'iTerm2|Terminal|Ghostty'
 run = 'move-node-to-workspace 1'
 
-# 2 — IDE / заметки
+# 2 — IDE / notes
 [[on-window-detected]]
 if.app-name-regex-substring = 'Zed|Code|Cursor|opencode|Obsidian'
 run = 'move-node-to-workspace 2'
 
-# 3 — Браузеры
+# 3 — Browsers
 [[on-window-detected]]
 if.app-name-regex-substring = 'Firefox|Chrome|Safari|YandexBrowser'
 run = 'move-node-to-workspace 3'
 
-# 4 — Общение
+# 4 — Communication
 [[on-window-detected]]
 if.app-name-regex-substring = 'Telegram|Discord|Mail|Jazz'
 run = 'move-node-to-workspace 4'
@@ -55,12 +55,12 @@ if.app-name-regex-substring = 'TickTick'
 if.window-title-regex-substring = 'TickTick'
 run = 'move-node-to-workspace 4'
 
-# 5 — Музыка
+# 5 — Music
 [[on-window-detected]]
 if.app-name-regex-substring = 'Spotify|Yandex'
 run = 'move-node-to-workspace 5'
 
-# Floating — попапы и инструменты
+# Floating — popups and tools
 [[on-window-detected]]
 if.app-name-regex-substring = 'TickTick'
 if.window-title-regex-substring = 'Window'
@@ -87,11 +87,11 @@ if.app-name-regex-substring = 'Finder|System Preferences|System Settings|Activit
 run = 'layout floating'
 
 # ──────────────────────────────────────────
-# ХОТКЕИ
+# KEYBINDINGS
 # ──────────────────────────────────────────
 [mode.main.binding]
 
-# Фокус между окнами — hjkl и стрелки (любая раскладка)
+# Focus — hjkl and arrows (layout-independent)
 alt-h     = 'focus left'
 alt-j     = 'focus down'
 alt-k     = 'focus up'
@@ -101,11 +101,11 @@ alt-down  = 'focus down'
 alt-up    = 'focus up'
 alt-right = 'focus right'
 
-# Float/tile для конкретного окна
+# Float / fullscreen
 alt-f       = 'layout floating tiling'
 alt-shift-f = 'fullscreen'
 
-# Переключение воркспейсов
+# Switch workspace
 alt-1 = 'workspace 1'
 alt-2 = 'workspace 2'
 alt-3 = 'workspace 3'
@@ -113,7 +113,7 @@ alt-4 = 'workspace 4'
 alt-5 = 'workspace 5'
 alt-6 = 'workspace 6'
 
-# Перенос окна на воркспейс
+# Move window to workspace
 alt-shift-1 = 'move-node-to-workspace 1'
 alt-shift-2 = 'move-node-to-workspace 2'
 alt-shift-3 = 'move-node-to-workspace 3'
@@ -121,10 +121,10 @@ alt-shift-4 = 'move-node-to-workspace 4'
 alt-shift-5 = 'move-node-to-workspace 5'
 alt-shift-6 = 'move-node-to-workspace 6'
 
-# Мониторы
+# Monitors
 alt-tab       = 'focus-monitor --wrap-around next'
 alt-shift-tab = 'move-node-to-monitor --wrap-around next'
 
-# Утилиты
+# Utility
 alt-shift-r = 'reload-config'
 alt-shift-q = 'close'
