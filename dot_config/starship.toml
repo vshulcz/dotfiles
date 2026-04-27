@@ -1,0 +1,113 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+add_newline = false
+
+format = """\
+$os\
+[](bg:#769ff0 fg:#a3aed2)\
+$directory\
+[](fg:#769ff0 bg:#394260)\
+$git_branch\
+$git_status\
+$git_state\
+[](fg:#394260 bg:#212736)\
+$python\
+$nodejs\
+$rust\
+$golang\
+[](fg:#212736)\
+\n$character"""
+
+right_format = """$status[](fg:#1d2230)$cmd_duration$time"""
+
+[os]
+disabled = false
+style    = "bg:#a3aed2 fg:#090c0c"
+format   = "[ $symbol ]($style)"
+
+[os.symbols]
+Macos   = ""
+Linux   = ""
+Windows = ""
+Ubuntu  = ""
+Arch    = ""
+Debian  = ""
+
+[directory]
+style             = "fg:#e3e5e5 bg:#769ff0"
+format            = "[ $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+home_symbol       = "~"
+truncate_to_repo  = true
+
+[git_branch]
+symbol = ""
+style  = "bg:#394260"
+format = "[[ $symbol $branch ](fg:#769ff0 bg:#394260)]($style)"
+
+[git_status]
+style      = "bg:#394260"
+format     = "[[($all_status$ahead_behind )](fg:#769ff0 bg:#394260)]($style)"
+ahead      = "⇡${count}"
+behind     = "⇣${count}"
+diverged   = "⇕⇡${ahead_count}⇣${behind_count}"
+untracked  = "?${count}"
+modified   = "!${count}"
+staged     = "+${count}"
+deleted    = "✘${count}"
+stashed    = ""
+conflicted = "=${count}"
+
+[git_state]
+style  = "bg:#394260"
+format = "[ $state ](fg:#769ff0 bg:#394260)"
+
+[python]
+symbol         = ""
+style          = "bg:#212736"
+format         = "[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)"
+detect_files   = ["requirements.txt", "pyproject.toml", "setup.py", "Pipfile", ".python-version"]
+detect_folders = [".venv", "venv"]
+
+[nodejs]
+symbol            = ""
+style             = "bg:#212736"
+format            = "[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)"
+detect_files      = ["package.json", ".nvmrc", ".node-version"]
+detect_extensions = ["js", "ts", "mjs"]
+
+[rust]
+symbol            = ""
+style             = "bg:#212736"
+format            = "[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)"
+detect_files      = ["Cargo.toml"]
+detect_extensions = ["rs"]
+
+[golang]
+symbol            = ""
+style             = "bg:#212736"
+format            = "[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)"
+detect_files      = ["go.mod", "go.sum", "go.work"]
+detect_extensions = ["go"]
+
+[cmd_duration]
+style    = "bg:#1d2230"
+format   = "[[  $duration ](fg:#a0a9cb bg:#1d2230)]($style)"
+min_time = 2_000
+
+[time]
+disabled    = false
+time_format = "%H:%M"
+style       = "bg:#1d2230"
+format      = "[  $time ](fg:#a0a9cb bg:#1d2230)"
+
+[status]
+disabled = false
+style    = "bold red"
+format   = "[✘ $status ]($style)"
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol   = "[❯](bold red)"
+vimcmd_symbol  = "[❮](bold green)"
