@@ -1,0 +1,23 @@
+[user]
+	name = vshulcz
+	email = vshulcz@gmail.com
+
+[http]
+	proxy =
+	postBuffer = 524288000
+
+[https]
+	proxy =
+
+[core]
+	excludesfile = ~/.gitignore_global
+	autocrlf = input
+
+[pull]
+	rebase = true
+
+[push]
+	autoSetupRemote = true
+
+[rebase]
+	autoStash = true
