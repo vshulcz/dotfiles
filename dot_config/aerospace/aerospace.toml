@@ -1,0 +1,130 @@
+enable-normalization-flatten-containers = true
+enable-normalization-opposite-orientation-for-nested-containers = true
+
+after-startup-command = ['workspace 1']
+
+[gaps]
+inner.horizontal = 8
+inner.vertical   = 8
+outer.left       = 8
+outer.bottom     = 8
+outer.top        = 8
+outer.right      = 8
+
+# ──────────────────────────────────────────
+# ВОРКСПЕЙСЫ → МОНИТОРЫ
+# 1 терминалы   built-in
+# 2 IDE/заметки built-in
+# 3 браузеры    secondary
+# 4 общение     secondary
+# 5 музыка      built-in
+# ──────────────────────────────────────────
+[workspace-to-monitor-force-assignment]
+1 = 'built-in'
+2 = 'built-in'
+3 = 'secondary'
+4 = 'secondary'
+5 = 'built-in'
+
+# ──────────────────────────────────────────
+# ПРИЛОЖЕНИЯ → ВОРКСПЕЙСЫ
+# ──────────────────────────────────────────
+
+# 1 — Терминалы
+[[on-window-detected]]
+if.app-name-regex-substring = 'iTerm2|Terminal|Ghostty'
+run = 'move-node-to-workspace 1'
+
+# 2 — IDE / заметки
+[[on-window-detected]]
+if.app-name-regex-substring = 'Zed|Code|Cursor|opencode|Obsidian'
+run = 'move-node-to-workspace 2'
+
+# 3 — Браузеры
+[[on-window-detected]]
+if.app-name-regex-substring = 'Firefox|Chrome|Safari|YandexBrowser'
+run = 'move-node-to-workspace 3'
+
+# 4 — Общение
+[[on-window-detected]]
+if.app-name-regex-substring = 'Telegram|Discord|Mail|Jazz'
+run = 'move-node-to-workspace 4'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'TickTick'
+if.window-title-regex-substring = 'TickTick'
+run = 'move-node-to-workspace 4'
+
+# 5 — Музыка
+[[on-window-detected]]
+if.app-name-regex-substring = 'Spotify|Yandex'
+run = 'move-node-to-workspace 5'
+
+# Floating — попапы и инструменты
+[[on-window-detected]]
+if.app-name-regex-substring = 'TickTick'
+if.window-title-regex-substring = 'Window'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Preview'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Hiddify'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'OBS'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Microsoft Word|Microsoft Excel|Microsoft PowerPoint|Pages|Numbers|Keynote'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Finder|System Preferences|System Settings|Activity Monitor|Calculator|Disk Utility'
+run = 'layout floating'
+
+# ──────────────────────────────────────────
+# ХОТКЕИ
+# ──────────────────────────────────────────
+[mode.main.binding]
+
+# Фокус между окнами — hjkl и стрелки (любая раскладка)
+alt-h     = 'focus left'
+alt-j     = 'focus down'
+alt-k     = 'focus up'
+alt-l     = 'focus right'
+alt-left  = 'focus left'
+alt-down  = 'focus down'
+alt-up    = 'focus up'
+alt-right = 'focus right'
+
+# Float/tile для конкретного окна
+alt-f       = 'layout floating tiling'
+alt-shift-f = 'fullscreen'
+
+# Переключение воркспейсов
+alt-1 = 'workspace 1'
+alt-2 = 'workspace 2'
+alt-3 = 'workspace 3'
+alt-4 = 'workspace 4'
+alt-5 = 'workspace 5'
+alt-6 = 'workspace 6'
+
+# Перенос окна на воркспейс
+alt-shift-1 = 'move-node-to-workspace 1'
+alt-shift-2 = 'move-node-to-workspace 2'
+alt-shift-3 = 'move-node-to-workspace 3'
+alt-shift-4 = 'move-node-to-workspace 4'
+alt-shift-5 = 'move-node-to-workspace 5'
+alt-shift-6 = 'move-node-to-workspace 6'
+
+# Мониторы
+alt-tab       = 'focus-monitor --wrap-around next'
+alt-shift-tab = 'move-node-to-monitor --wrap-around next'
+
+# Утилиты
+alt-shift-r = 'reload-config'
+alt-shift-q = 'close'
