@@ -11,7 +11,8 @@ scrollback-limit = 25000
 window-save-state = always
 macos-titlebar-style = tabs
 copy-on-select = clipboard
-confirm-close-surface = false
+# cmd+w must not silently kill a long-running agent
+confirm-close-surface = true
 
 # Dropdown terminal. Needs Ghostty in System Settings > Privacy > Accessibility.
 keybind = global:cmd+grave_accent=toggle_quick_terminal
