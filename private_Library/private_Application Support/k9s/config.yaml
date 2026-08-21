@@ -1,0 +1,16 @@
+k9s:
+  liveViewAutoRefresh: false
+  ui:
+    skin: catppuccin-mocha
+    enableMouse: true
+    headless: false
+    logoless: true
+    crumbsless: false
+    reactive: true
+  skipLatestRevCheck: true
+  logger:
+    tail: 200
+    buffer: 5000
+    sinceSeconds: -1
+    textWrap: false
+    showTime: false

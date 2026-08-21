@@ -1,0 +1,23 @@
+gui:
+  nerdFontsVersion: "3"
+  showRandomTip: false
+  scrollHeight: 4
+  sidePanelWidth: 0.28
+  theme:
+    activeBorderColor: ["#89b4fa", "bold"]
+    inactiveBorderColor: ["#585b70"]
+    selectedLineBgColor: ["#313244"]
+    optionsTextColor: ["#89b4fa"]
+    cherryPickedCommitBgColor: ["#45475a"]
+    cherryPickedCommitFgColor: ["#89b4fa"]
+    unstagedChangesColor: ["#f38ba8"]
+
+git:
+  log:
+    showGraph: always
+    showWholeGraph: true
+  mainBranches: [main, master]
+  parseEmoji: true
+
+os:
+  editPreset: zed
