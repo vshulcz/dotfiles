@@ -1,8 +1,10 @@
+config-version = 2
+
 enable-normalization-flatten-containers = true
 enable-normalization-opposite-orientation-for-nested-containers = true
 default-root-container-orientation = 'horizontal'
 
-after-startup-command = ['workspace 1']
+persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 [gaps]
 inner.horizontal = 8
@@ -13,53 +15,38 @@ outer.top        = 8
 outer.right      = 8
 
 # ──────────────────────────────────────────
-# WORKSPACES → MONITORS
-# 1  terminals   built-in
-# 2  IDE/notes   built-in
-# 3  browsers    secondary
-# 4  communication  secondary
-# 5  music       built-in
-# ──────────────────────────────────────────
-[workspace-to-monitor-force-assignment]
-1 = 'built-in'
-2 = 'built-in'
-3 = 'secondary'
-4 = 'secondary'
-5 = 'built-in'
-
-# ──────────────────────────────────────────
 # APP → WORKSPACE RULES
 # ──────────────────────────────────────────
 
 # 1 — Terminals
 [[on-window-detected]]
 if.app-name-regex-substring = 'iTerm2|Terminal|Ghostty'
-run = 'move-node-to-workspace 1'
+run = 'move-node-to-workspace --focus-follows-window 1'
 
 # 2 — IDE / notes
 [[on-window-detected]]
 if.app-name-regex-substring = 'Zed|Code|Cursor|opencode|Obsidian'
-run = 'move-node-to-workspace 2'
+run = 'move-node-to-workspace --focus-follows-window 2'
 
 # 3 — Browsers
 [[on-window-detected]]
 if.app-name-regex-substring = 'Firefox|Chrome|Safari|YandexBrowser'
-run = 'move-node-to-workspace 3'
+run = 'move-node-to-workspace --focus-follows-window 3'
 
 # 4 — Communication
 [[on-window-detected]]
 if.app-name-regex-substring = 'Telegram|Discord|Mail|Jazz'
-run = 'move-node-to-workspace 4'
+run = 'move-node-to-workspace --focus-follows-window 4'
 
 [[on-window-detected]]
 if.app-name-regex-substring = 'TickTick'
 if.window-title-regex-substring = 'TickTick'
-run = 'move-node-to-workspace 4'
+run = 'move-node-to-workspace --focus-follows-window 4'
 
 # 5 — Music
 [[on-window-detected]]
 if.app-name-regex-substring = 'Spotify|Yandex'
-run = 'move-node-to-workspace 5'
+run = 'move-node-to-workspace --focus-follows-window 5'
 
 # Floating — popups and tools
 [[on-window-detected]]
@@ -118,6 +105,9 @@ alt-3 = 'workspace 3'
 alt-4 = 'workspace 4'
 alt-5 = 'workspace 5'
 alt-6 = 'workspace 6'
+alt-7 = 'workspace 7'
+alt-8 = 'workspace 8'
+alt-9 = 'workspace 9'
 
 # Move window to workspace
 alt-shift-1 = 'move-node-to-workspace 1'
@@ -126,6 +116,9 @@ alt-shift-3 = 'move-node-to-workspace 3'
 alt-shift-4 = 'move-node-to-workspace 4'
 alt-shift-5 = 'move-node-to-workspace 5'
 alt-shift-6 = 'move-node-to-workspace 6'
+alt-shift-7 = 'move-node-to-workspace 7'
+alt-shift-8 = 'move-node-to-workspace 8'
+alt-shift-9 = 'move-node-to-workspace 9'
 
 # Monitors
 alt-tab       = 'focus-monitor --wrap-around next'
