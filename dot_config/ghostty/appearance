@@ -19,7 +19,5 @@ unfocused-split-opacity = 0.5
 macos-non-native-fullscreen = true
 macos-titlebar-style = tabs
 
-# --- font rendering trial: variant A, looser line spacing ---
+# Looser line spacing — easier on long agent logs
 adjust-cell-height = 10%
-# --- variant B (swap for A to compare): thicker glyphs ---
-# font-thicken = true
