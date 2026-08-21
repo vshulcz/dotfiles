@@ -9,6 +9,7 @@ Personal macOS dotfiles managed with [chezmoi](https://chezmoi.io).
 | `~/.config/aerospace/aerospace.toml` | [AeroSpace](https://github.com/nikitabobko/AeroSpace) tiling window manager |
 | `~/.config/ghostty/` | [Ghostty](https://ghostty.org) terminal — `config` plus `appearance` and `keybinds` includes |
 | `~/.config/tmux/tmux.conf` | tmux — mouse on, vi copy mode, splits keep cwd |
+| `~/.config/yazi/` | [yazi](https://yazi-rs.github.io) file manager — Catppuccin Mocha, image previews |
 | `~/.config/starship.toml` | [Starship](https://starship.rs) prompt — Tokyo Night powerline style |
 | `~/.gitconfig` | Git config — rebase pulls, auto push upstream, auto stash, SSH commit signing when the key is present |
 | `~/.gitignore_global` | Global gitignore — `.DS_Store`, `.env`, `*.local`, editor dirs, Claude local settings |
@@ -28,9 +29,12 @@ brew install --cask nikitabobko/tap/aerospace
 # 4. Install Starship
 brew install starship
 
-# 5. Install Ghostty and tmux
+# 5. Install Ghostty, tmux and yazi
 brew install --cask ghostty
-brew install tmux
+brew install tmux yazi sevenzip poppler fd ripgrep fzf zoxide imagemagick ffmpeg
+
+# yazi flavors are fetched separately
+ya pkg install
 
 # 6. Install JetBrainsMono Nerd Font (required for prompt icons)
 brew install --cask font-jetbrains-mono-nerd-font
