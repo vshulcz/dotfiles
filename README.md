@@ -10,8 +10,8 @@ Personal macOS dotfiles managed with [chezmoi](https://chezmoi.io).
 | `~/.config/ghostty/config` | [Ghostty](https://ghostty.org) terminal — Catppuccin Mocha, splits, quick terminal |
 | `~/.config/tmux/tmux.conf` | tmux — mouse on, vi copy mode, splits keep cwd |
 | `~/.config/starship.toml` | [Starship](https://starship.rs) prompt — Tokyo Night powerline style |
-| `~/.gitconfig` | Git config — rebase pulls, auto push upstream, auto stash |
-| `~/.gitignore_global` | Global gitignore — `.DS_Store`, `.env`, `.idea/`, `.vscode/` |
+| `~/.gitconfig` | Git config — rebase pulls, auto push upstream, auto stash, SSH commit signing when the key is present |
+| `~/.gitignore_global` | Global gitignore — `.DS_Store`, `.env`, `*.local`, editor dirs, Claude local settings |
 
 ## Install on a new machine
 
@@ -54,6 +54,13 @@ chezmoi diff
 
 ## Structure
 
-chezmoi stores sources in `~/.local/share/chezmoi/`. Dots in paths become `dot_` prefix:
+chezmoi stores sources in `~/.local/share/chezmoi/`. Dots in paths become `dot_` prefix, and
+templated files end in `.tmpl`:
+
 - `~/.config/` → `dot_config/`
-- `~/.zshrc` → `dot_zshrc`
+- `~/.gitconfig` → `dot_gitconfig.tmpl`
+
+`.gitconfig` is a template so the SSH signing paths resolve per machine. Commit signing turns
+itself off when `~/.ssh/id_ed25519_signing.pub` is missing, so a fresh machine can still commit.
+
+`README.md` is listed in `.chezmoiignore` — it belongs to the repo, not to `$HOME`.
