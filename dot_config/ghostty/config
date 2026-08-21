@@ -1,74 +1,24 @@
 # Ghostty config. Reload in-app: cmd+shift+,
 # Full reference: ghostty +show-config --default --docs
 
-font-family = JetBrainsMono Nerd Font Mono
-font-size = 14
-
-theme = Catppuccin Mocha
+config-file = appearance
+config-file = keybinds
 
 scrollback-limit = 25000
-
 window-save-state = always
-macos-titlebar-style = tabs
 copy-on-select = clipboard
-# cmd+w must not silently kill a long-running agent
-confirm-close-surface = true
-
-# Dropdown terminal. Needs Ghostty in System Settings > Privacy > Accessibility.
-keybind = global:cmd+grave_accent=toggle_quick_terminal
 quick-terminal-position = top
 quick-terminal-size = 40%
+quick-terminal-autohide = true
+auto-update = check
 
-# Splits
-keybind = cmd+d=new_split:right
-keybind = cmd+shift+d=new_split:down
-keybind = cmd+ctrl+h=goto_split:left
-keybind = cmd+ctrl+l=goto_split:right
-keybind = cmd+ctrl+k=goto_split:up
-keybind = cmd+ctrl+j=goto_split:down
+# cmd+w must not silently kill a long-running agent
+confirm-close-surface = true
 
 # Option = Meta, so alt+b / alt+d / alt+backspace work in zsh.
 # Note: alt+f is swallowed by AeroSpace ('layout floating tiling').
 macos-option-as-alt = true
 
-window-padding-x = 8
-window-padding-y = 8
-cursor-style = block
-cursor-style-blink = false
-
-mouse-hide-while-typing = true
-unfocused-split-opacity = 0.5
-
-# Tabs
-keybind = cmd+one=goto_tab:1
-keybind = cmd+two=goto_tab:2
-keybind = cmd+three=goto_tab:3
-keybind = cmd+four=goto_tab:4
-keybind = cmd+five=goto_tab:5
-keybind = cmd+six=goto_tab:6
-keybind = cmd+seven=goto_tab:7
-keybind = cmd+eight=goto_tab:8
-keybind = cmd+nine=last_tab
-
-# --- power features ---
-# Zoom a split to fullscreen and back
-keybind = cmd+shift+enter=toggle_split_zoom
-keybind = cmd+ctrl+e=equalize_splits
-
-# Jump between shell prompts in scrollback (needs shell integration, auto for zsh)
-keybind = cmd+up=jump_to_prompt:-1
-keybind = cmd+down=jump_to_prompt:1
-
-# Dump scrollback to a temp file and open it — beats scrolling through huge logs
-keybind = cmd+shift+s=write_scrollback_file:open
-keybind = cmd+shift+e=write_selection_file:open
-
-keybind = cmd+shift+i=inspector:toggle
-
-quick-terminal-autohide = true
-auto-update = check
-
-# --- agentic dev ---
 # Finished agent in a background split gets a highlighted border, not just a dock bounce
 bell-features = attention,title,border
 
@@ -79,6 +29,3 @@ shell-integration-features = cursor,no-sudo,title,ssh-env,ssh-terminfo,path
 # Long multi-line prompts get pasted into agents constantly; the confirm dialog
 # is pure friction. Bracketed-paste safety stays on.
 clipboard-paste-protection = false
-
-# Name a split by hand so 6 parallel agent sessions stay distinguishable
-keybind = cmd+ctrl+t=prompt_surface_title

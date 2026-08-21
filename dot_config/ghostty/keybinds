@@ -1,0 +1,36 @@
+# Keybinds. Included from ./config
+# cmd+d, cmd+shift+d and cmd+shift+enter are Ghostty defaults, not repeated here.
+
+# Dropdown terminal. Needs Ghostty in System Settings > Privacy > Accessibility.
+keybind = global:cmd+grave_accent=toggle_quick_terminal
+
+# Splits
+keybind = cmd+ctrl+h=goto_split:left
+keybind = cmd+ctrl+l=goto_split:right
+keybind = cmd+ctrl+k=goto_split:up
+keybind = cmd+ctrl+j=goto_split:down
+keybind = cmd+ctrl+e=equalize_splits
+
+# Tabs
+keybind = cmd+one=goto_tab:1
+keybind = cmd+two=goto_tab:2
+keybind = cmd+three=goto_tab:3
+keybind = cmd+four=goto_tab:4
+keybind = cmd+five=goto_tab:5
+keybind = cmd+six=goto_tab:6
+keybind = cmd+seven=goto_tab:7
+keybind = cmd+eight=goto_tab:8
+keybind = cmd+nine=last_tab
+
+# Jump between shell prompts in scrollback (needs shell integration, auto for zsh)
+keybind = cmd+up=jump_to_prompt:-1
+keybind = cmd+down=jump_to_prompt:1
+
+# Dump scrollback to a temp file and open it — beats scrolling through huge logs
+keybind = cmd+shift+s=write_scrollback_file:open
+keybind = cmd+shift+e=write_selection_file:open
+
+keybind = cmd+shift+i=inspector:toggle
+
+# Name a split by hand so parallel agent sessions stay distinguishable
+keybind = cmd+ctrl+t=prompt_surface_title

@@ -7,7 +7,7 @@ Personal macOS dotfiles managed with [chezmoi](https://chezmoi.io).
 | File | Description |
 |------|-------------|
 | `~/.config/aerospace/aerospace.toml` | [AeroSpace](https://github.com/nikitabobko/AeroSpace) tiling window manager |
-| `~/.config/ghostty/config` | [Ghostty](https://ghostty.org) terminal — Catppuccin Mocha, splits, quick terminal |
+| `~/.config/ghostty/` | [Ghostty](https://ghostty.org) terminal — `config` plus `appearance` and `keybinds` includes |
 | `~/.config/tmux/tmux.conf` | tmux — mouse on, vi copy mode, splits keep cwd |
 | `~/.config/starship.toml` | [Starship](https://starship.rs) prompt — Tokyo Night powerline style |
 | `~/.gitconfig` | Git config — rebase pulls, auto push upstream, auto stash, SSH commit signing when the key is present |
