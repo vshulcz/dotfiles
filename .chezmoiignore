@@ -1,2 +1,7 @@
 README.md
 LICENSE
+
+{{/* mini runs its own git identity and the hermes credential helper */}}
+{{ if eq .chezmoi.username "vshulcz" }}
+.gitconfig
+{{ end }}
