@@ -11,7 +11,7 @@ Personal macOS dotfiles managed with [chezmoi](https://chezmoi.io).
 | `~/.config/tmux/tmux.conf` | tmux — mouse on, vi copy mode, splits keep cwd |
 | `~/.config/yazi/` | [yazi](https://yazi-rs.github.io) file manager — Catppuccin Mocha, image previews |
 | `~/.config/lazygit/config.yml` | [lazygit](https://github.com/jesseduffield/lazygit) — full commit graph, Catppuccin colors |
-| `~/Library/Application Support/k9s/` | [k9s](https://k9scli.io) Kubernetes TUI — Catppuccin Mocha skin |
+| `~/.config/k9s/` | [k9s](https://k9scli.io) Kubernetes TUI — Catppuccin Mocha skin (macOS gets a symlink from `Library/Application Support`) |
 | `~/.config/starship.toml` | [Starship](https://starship.rs) prompt — Tokyo Night powerline style |
 | `~/.gitconfig` | Git config — rebase pulls, auto push upstream, auto stash, SSH commit signing when the key is present |
 | `~/.gitignore_global` | Global gitignore — `.DS_Store`, `.env`, `*.local`, editor dirs, Claude local settings |

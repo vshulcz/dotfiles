@@ -5,3 +5,8 @@ LICENSE
 {{ if eq .chezmoi.username "vshulcz" }}
 .gitconfig
 {{ end }}
+
+{{/* the Library symlink only makes sense on macOS; Linux k9s reads ~/.config/k9s directly */}}
+{{ if ne .chezmoi.os "darwin" }}
+Library
+{{ end }}
