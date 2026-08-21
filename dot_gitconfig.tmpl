@@ -1,7 +1,11 @@
+{{- $signingKey := joinPath .chezmoi.homeDir ".ssh/id_ed25519_signing.pub" -}}
+{{- $allowedSigners := joinPath .chezmoi.homeDir ".ssh/allowed_signers" -}}
 [user]
 	name = vshulcz
 	email = vshulcz@gmail.com
-	signingkey = {{ .chezmoi.homeDir }}/.ssh/id_ed25519_signing.pub
+{{- if stat $signingKey }}
+	signingkey = {{ $signingKey }}
+{{- end }}
 
 [http]
 	proxy =
@@ -22,9 +26,11 @@
 
 [rebase]
 	autoStash = true
+{{- if stat $signingKey }}
 [gpg]
 	format = ssh
 [commit]
 	gpgsign = true
 [gpg "ssh"]
-	allowedSignersFile = {{ .chezmoi.homeDir }}/.ssh/allowed_signers
+	allowedSignersFile = {{ $allowedSigners }}
+{{- end }}
