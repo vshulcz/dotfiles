@@ -3,3 +3,5 @@
 *.local
 .idea/
 .vscode/
+
+**/.claude/settings.local.json

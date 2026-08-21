@@ -1,0 +1,30 @@
+[user]
+	name = vshulcz
+	email = vshulcz@gmail.com
+	signingkey = {{ .chezmoi.homeDir }}/.ssh/id_ed25519_signing.pub
+
+[http]
+	proxy =
+	postBuffer = 524288000
+
+[https]
+	proxy =
+
+[core]
+	excludesfile = ~/.gitignore_global
+	autocrlf = input
+
+[pull]
+	rebase = true
+
+[push]
+	autoSetupRemote = true
+
+[rebase]
+	autoStash = true
+[gpg]
+	format = ssh
+[commit]
+	gpgsign = true
+[gpg "ssh"]
+	allowedSignersFile = {{ .chezmoi.homeDir }}/.ssh/allowed_signers
