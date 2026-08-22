@@ -13,6 +13,7 @@ import subprocess, sys, termios, threading, time, tty
 
 CACHE = os.path.expanduser(os.environ.get("XDG_CACHE_HOME", "~/.cache")) + "/ytm-last"
 SOCK = f"/tmp/ytm-{os.getpid()}.sock"
+LOG = f"/tmp/ytm-{os.getpid()}.log"
 RESULTS = int(os.environ.get("YTM_RESULTS", 25))
 QUEUE = int(os.environ.get("YTM_QUEUE", 40))
 LOOKAHEAD = int(os.environ.get("YTM_LOOKAHEAD", 4))
@@ -42,6 +43,20 @@ def media_box():
     cw, ch = cell_px()
     rows = max(3, round((cols * cw * 9 / 16) / ch))
     return cols, rows
+
+
+def video_px():
+    """Pixel size for mpv's kitty output. --no-terminal means mpv cannot ask
+    the terminal itself, so it would fall back to a tiny 320x240."""
+    term = shutil.get_terminal_size((80, 24))
+    cw, ch = cell_px()
+    width = int((term.columns - 2) * cw)
+    height = int(width * 9 / 16)
+    room = int((term.lines - 2) * ch)
+    if height > room:
+        height = room
+        width = int(height * 16 / 9)
+    return max(320, width), max(180, height)
 
 
 def ytdlp(args):
@@ -87,8 +102,17 @@ class Mpv:
                "--gapless-audio=yes", f"--input-ipc-server={SOCK}"]
         if video:
             # mpv is the only thing allowed to write to the tty here: its kitty
-            # frames and our own cursor writes would shred each other otherwise
-            cmd += ["--vo=kitty", "--profile=sw-fast"]
+            # frames and our own cursor writes would shred each other otherwise,
+            # so the title and clock go through mpv's own OSD instead.
+            w, h = video_px()
+            cmd += ["--vo=kitty", "--profile=sw-fast",
+                    f"--vo-kitty-width={w}", f"--vo-kitty-height={h}",
+                    "--vo-kitty-left=1", "--vo-kitty-top=1",
+                    "--osd-level=3", "--osd-on-seek=msg-bar",
+                    "--osd-status-msg=${media-title}\n"
+                    "${time-pos} / ${duration}   "
+                    "track ${playlist-pos-1}/${playlist-count}   vol ${volume}%",
+                    f"--log-file={LOG}"]
         else:
             cmd += ["--no-video"]
         self.proc = subprocess.Popen(cmd)
@@ -310,8 +334,18 @@ def main():
         if res: res.stop.set()
         termios.tcsetattr(fd, termios.TCSADRAIN, old)
         out(f"{ESC}_Ga=d,d=A{ESC}\\{ESC}[?25h{ESC}[2J{ESC}[H")
+        rc = m.proc.poll()
         m.quit()
         try: os.unlink(SOCK)
+        except OSError: pass
+        if rc not in (None, 0) and os.path.exists(LOG):
+            bad = [l for l in open(LOG, errors="replace").read().splitlines()
+                   if "[e]" in l or "error" in l.lower()][-5:]
+            if bad:
+                sys.stderr.write(f"mpv exited ({rc}):\n" + "\n".join(bad) + "\n")
+                sys.stderr.write(f"full log: {LOG}\n")
+                return
+        try: os.unlink(LOG)
         except OSError: pass
 
 
