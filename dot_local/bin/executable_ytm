@@ -2,7 +2,8 @@
 """ytm - pick a track, let YouTube's mix keep playing, watch it in the terminal.
 
   ytm <query>       search, pick one, play it and the mix that follows
-  ytm -a <query>    audio only, cover art instead of the clip
+  ytm -v <query>    show the clip instead of the cover (no status line:
+                    mpv has to own the terminal to draw video)
   ytm -1 <query>    just that track, no mix
   ytm <url>         play a track, album or playlist as given
   ytm               resume whatever played last
@@ -80,11 +81,9 @@ class Mpv:
         cmd = ["mpv", "--idle=yes", "--no-terminal", "--really-quiet", "--ytdl=no",
                "--gapless-audio=yes", f"--input-ipc-server={SOCK}"]
         if video:
-            cols, rows = box
-            cmd += ["--vo=kitty", "--profile=sw-fast", "--panscan=1.0",
-                    "--vo-kitty-alt-screen=no", "--vo-kitty-config-clear=no",
-                    f"--vo-kitty-left={LEFT}", "--vo-kitty-top=2",
-                    f"--vo-kitty-cols={cols}", f"--vo-kitty-rows={rows}"]
+            # mpv is the only thing allowed to write to the tty here: its kitty
+            # frames and our own cursor writes would shred each other otherwise
+            cmd += ["--vo=kitty", "--profile=sw-fast"]
         else:
             cmd += ["--no-video"]
         self.proc = subprocess.Popen(cmd)
@@ -236,11 +235,10 @@ def render(p, queue, top, width, resolved):
 
 def main():
     args = sys.argv[1:]
-    single = False
-    video = True
-    while args and args[0] in ("-1", "--single", "-a", "--audio"):
+    single = video = False
+    while args and args[0] in ("-1", "--single", "-v", "--video"):
         if args[0] in ("-1", "--single"): single = True
-        else: video = False
+        else: video = True
         args = args[1:]
 
     if not args:
@@ -273,16 +271,18 @@ def main():
     last_vid = None
     try:
         tty.setcbreak(fd)
-        out(f"{ESC}[?25l{ESC}[2J")
+        if not video:
+            out(f"{ESC}[?25l{ESC}[2J")
         while m.alive():
-            width = max(20, shutil.get_terminal_size((80, 24)).columns - 2 * LEFT)
-            props = {k: m.get(k) for k in
-                     ("media-title", "time-pos", "duration", "playlist-pos", "pause", "volume")}
-            idx = props.get("playlist-pos") or 0
-            if not video and 0 <= idx < len(queue) and queue[idx][0] != last_vid:
-                last_vid = queue[idx][0]
-                draw_cover(last_vid, box)
-            render(props, queue, top, width, res.done)
+            if not video:
+                width = max(20, shutil.get_terminal_size((80, 24)).columns - 2 * LEFT)
+                props = {k: m.get(k) for k in
+                         ("media-title", "time-pos", "duration", "playlist-pos", "pause", "volume")}
+                idx = props.get("playlist-pos") or 0
+                if 0 <= idx < len(queue) and queue[idx][0] != last_vid:
+                    last_vid = queue[idx][0]
+                    draw_cover(last_vid, box)
+                render(props, queue, top, width, res.done)
 
             if select.select([sys.stdin], [], [], 0.4)[0]:
                 k = sys.stdin.read(1)
@@ -290,8 +290,10 @@ def main():
                 elif k == " ": m.cmd_("cycle", "pause")
                 elif k in ("n", ">"): m.cmd_("playlist-next", "force")
                 elif k in ("p", "<"): m.cmd_("playlist-prev", "force")
-                elif k in ("+", "="): m.cmd_("add", "volume", 5)
-                elif k == "-": m.cmd_("add", "volume", -5)
+                elif k in ("+", "="):
+                    m.cmd_("set_property", "volume", min(100, int(m.get("volume") or 0) + 5))
+                elif k == "-":
+                    m.cmd_("set_property", "volume", max(0, int(m.get("volume") or 0) - 5))
     finally:
         res.stop.set()
         termios.tcsetattr(fd, termios.TCSADRAIN, old)
