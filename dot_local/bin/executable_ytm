@@ -19,12 +19,14 @@ play() {
 
 if [ $# -eq 0 ]; then
   [ -s "$LAST" ] || { echo "nothing played yet — try: ytm <query>"; exit 1; }
-  exec play "$(cat "$LAST")"
+  play "$(cat "$LAST")"
+  exit $?
 fi
 
 if [[ "$1" == http*://* ]]; then
   printf '%s' "$1" > "$LAST"
-  exec play "$1"
+  play "$1"
+  exit $?
 fi
 
 pick=$(
@@ -37,4 +39,4 @@ pick=$(
 
 url="https://www.youtube.com/watch?v=${pick%%|*}"
 printf '%s' "$url" > "$LAST"
-exec play "$url"
+play "$url"
