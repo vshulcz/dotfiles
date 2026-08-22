@@ -1,13 +1,32 @@
 #!/usr/bin/env python3
-"""ytm - pick a track, let YouTube's mix keep playing, watch it in the terminal."""
-import base64, json, os, re, select, shutil, signal, socket, subprocess, sys, termios, time, tty
+"""ytm - pick a track, let YouTube's mix keep playing, watch it in the terminal.
+
+  ytm <query>       search, pick one, play it and the mix that follows
+  ytm -1 <query>    just that track
+  ytm -v <query>    play the actual clip as video in the terminal
+  ytm <url>         play a track, album or playlist as given
+  ytm               resume whatever played last
+"""
+import base64, fcntl, json, math, os, re, select, shutil, signal, socket, struct, subprocess, sys, termios, time, tty
 
 CACHE = os.path.expanduser(os.environ.get("XDG_CACHE_HOME", "~/.cache")) + "/ytm-last"
 SOCK = f"/tmp/ytm-{os.getpid()}.sock"
 RESULTS = int(os.environ.get("YTM_RESULTS", 25))
 QUEUE = int(os.environ.get("YTM_QUEUE", 40))
-IMG_COLS, IMG_ROWS = 22, 11
+IMG_COLS = int(os.environ.get("YTM_COVER_COLS", 28))
 TEXT_COL = IMG_COLS + 4
+
+
+def cell_px():
+    """Pixel size of one terminal cell, so a 16:9 cover stays 16:9."""
+    try:
+        buf = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, b"\0" * 8)
+        rows, cols, xpix, ypix = struct.unpack("HHHH", buf)
+        if cols and rows and xpix and ypix:
+            return xpix // cols, ypix // rows
+    except Exception:
+        pass
+    return 8, 16
 
 ESC = "\033"
 def out(s): sys.stdout.write(s); sys.stdout.flush()
@@ -106,8 +125,7 @@ def thumbnail(vid):
             if fetch.returncode != 0 or not fetch.stdout:
                 continue
             conv = subprocess.run(
-                ["magick", "-", "-gravity", "center", "-crop", "1:1", "+repage",
-                 "-resize", "480x480", "png:-"],
+                ["magick", "-", "-resize", "640x360", "png:-"],
                 input=fetch.stdout, capture_output=True)
             if conv.returncode == 0 and conv.stdout[:8] == b"\x89PNG\r\n\x1a\n":
                 data = conv.stdout
@@ -123,11 +141,13 @@ def draw_cover(vid):
     data = thumbnail(vid)
     if not data:
         return
+    cw, ch_px = cell_px()
+    rows = max(1, math.ceil((IMG_COLS * cw * 9 / 16) / ch_px))
     payload = base64.standard_b64encode(data)
     out(at(2, 2))
     chunks = [payload[i:i + 4096] for i in range(0, len(payload), 4096)]
     for i, ch in enumerate(chunks):
-        first = "a=T,f=100,t=d,c=%d,r=%d," % (IMG_COLS, IMG_ROWS) if i == 0 else ""
+        first = "a=T,f=100,t=d,c=%d,r=%d," % (IMG_COLS, rows) if i == 0 else ""
         more = 1 if i < len(chunks) - 1 else 0
         out(f"{ESC}_G{first}m={more};{ch.decode()}{ESC}\\")
 
@@ -180,9 +200,13 @@ def render(m, state, cols):
 
 def main():
     args = sys.argv[1:]
-    single = False
-    if args and args[0] in ("-1", "--single"):
-        single = True; args = args[1:]
+    single = video = False
+    while args and args[0] in ("-1", "--single", "-v", "--video"):
+        if args[0] in ("-1", "--single"):
+            single = True
+        else:
+            video = True
+        args = args[1:]
 
     if not args:
         if not os.path.exists(CACHE):
@@ -196,6 +220,14 @@ def main():
                else f"https://www.youtube.com/watch?v={vid}&list=RD{vid}")
     os.makedirs(os.path.dirname(CACHE), exist_ok=True)
     open(CACHE, "w").write(url)
+
+    if video:
+        # let mpv own the terminal and draw the actual clip through kitty graphics
+        subprocess.run(
+            ["mpv", "--vo=kitty", "--profile=sw-fast", "--really-quiet",
+             f"--ytdl-raw-options-append=playlist-items=1-{QUEUE}",
+             "--ytdl-raw-options-append=yes-playlist=", url])
+        return
 
     m = Mpv(url)
     fd = sys.stdin.fileno()
