@@ -1,57 +1,235 @@
-#!/usr/bin/env bash
-# ytm — pick a track, then let YouTube's own mix keep the music going.
-#   ytm bonobo kerala     search, pick one, play it and its radio mix
-#   ytm -1 bonobo kerala  just that track, no mix
-#   ytm <url>             play a track, album or playlist as given
-#   ytm                   resume whatever played last
-set -euo pipefail
+#!/usr/bin/env python3
+"""ytm - pick a track, let YouTube's mix keep playing, watch it in the terminal."""
+import base64, json, os, re, select, shutil, signal, socket, subprocess, sys, termios, time, tty, urllib.request
 
-LAST="${XDG_CACHE_HOME:-$HOME/.cache}/ytm-last"
-COUNT="${YTM_RESULTS:-25}"     # search results to choose from
-QUEUE="${YTM_QUEUE:-40}"       # how much of the mix to queue up front
-mkdir -p "$(dirname "$LAST")"
+CACHE = os.path.expanduser(os.environ.get("XDG_CACHE_HOME", "~/.cache")) + "/ytm-last"
+SOCK = f"/tmp/ytm-{os.getpid()}.sock"
+RESULTS = int(os.environ.get("YTM_RESULTS", 25))
+QUEUE = int(os.environ.get("YTM_QUEUE", 40))
+IMG_COLS, IMG_ROWS = 22, 11
+TEXT_COL = IMG_COLS + 4
 
-single=0
-if [ "${1-}" = "-1" ] || [ "${1-}" = "--single" ]; then single=1; shift; fi
+ESC = "\033"
+def out(s): sys.stdout.write(s); sys.stdout.flush()
+def at(row, col): return f"{ESC}[{row};{col}H"
+def clear_eol(): return f"{ESC}[K"
 
-play() {
-  printf '\033]0;ytm\007'
-  echo "  space pause   > next   < prev   9/0 volume   q quit"
-  mpv --no-video --ytdl-format='bestaudio/best' \
-      --ytdl-raw-options-append=playlist-items="1-${QUEUE}" \
-      --ytdl-raw-options-append=yes-playlist= \
-      --term-osd-bar --msg-level=all=error,statusline=status \
-      --term-playing-msg='  ♪ ${media-title}' \
-      --input-ipc-server="${TMPDIR:-/tmp}/ytm.sock" \
-      "$@"
-}
 
-if [ $# -eq 0 ]; then
-  [ -s "$LAST" ] || { echo "nothing played yet — try: ytm <query>"; exit 1; }
-  play "$(cat "$LAST")"
-  exit $?
-fi
+def search(query):
+    fmt = "%(id)s|%(channel)s — %(title)s [%(duration_string)s]"
+    p = subprocess.run(["yt-dlp", "--flat-playlist", "--no-warnings", "--print", fmt,
+                        f"ytsearch{RESULTS}:{query}"], capture_output=True, text=True)
+    lines = [l for l in p.stdout.splitlines() if "|" in l]
+    if not lines:
+        sys.exit("nothing found")
+    fz = subprocess.run(["fzf", "--with-nth=2..", "--delimiter=|", "--height=45%",
+                         "--reverse", "--no-multi", f"--prompt=▶ {query} > "],
+                        input="\n".join(lines), capture_output=True, text=True)
+    if fz.returncode != 0 or not fz.stdout.strip():
+        sys.exit(0)
+    return fz.stdout.strip().split("|", 1)[0]
 
-if [[ "$1" == http*://* ]]; then
-  printf '%s' "$1" > "$LAST"
-  play "$1"
-  exit $?
-fi
 
-pick=$(
-  yt-dlp --flat-playlist --no-warnings \
-         --print '%(id)s|%(channel)s — %(title)s [%(duration_string)s]' \
-         "ytsearch${COUNT}:$*" 2>/dev/null \
-    | fzf --with-nth='2..' --delimiter='|' --height=45% --reverse \
-          --prompt="▶ $* > " --no-multi
-) || exit 0
+class Mpv:
+    def __init__(self, url):
+        self.proc = subprocess.Popen(
+            ["mpv", "--no-video", "--idle=once", "--no-terminal", "--really-quiet",
+             "--ytdl-format=bestaudio/best",
+             f"--ytdl-raw-options-append=playlist-items=1-{QUEUE}",
+             "--ytdl-raw-options-append=yes-playlist=",
+             f"--input-ipc-server={SOCK}", url])
+        self.sock = None
+        for _ in range(100):
+            if os.path.exists(SOCK):
+                try:
+                    self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                    self.sock.connect(SOCK); self.sock.settimeout(0.4); break
+                except OSError:
+                    self.sock = None
+            time.sleep(0.1)
+        if not self.sock:
+            sys.exit("mpv did not start")
+        self.buf = b""
+        self.rid = 0
 
-id=${pick%%|*}
-if [ "$single" = 1 ]; then
-  url="https://www.youtube.com/watch?v=${id}"
-else
-  # RD<id> is YouTube's own mix seeded from that track — endless related music
-  url="https://www.youtube.com/watch?v=${id}&list=RD${id}"
-fi
-printf '%s' "$url" > "$LAST"
-play "$url"
+    def cmd(self, *args):
+        self.rid += 1
+        try:
+            self.sock.send((json.dumps({"command": list(args), "request_id": self.rid}) + "\n").encode())
+        except OSError:
+            return None
+        deadline = time.time() + 0.6
+        while time.time() < deadline:
+            try:
+                chunk = self.sock.recv(65536)
+            except (socket.timeout, OSError):
+                return None
+            if not chunk:
+                return None
+            self.buf += chunk
+            while b"\n" in self.buf:
+                line, self.buf = self.buf.split(b"\n", 1)
+                try:
+                    msg = json.loads(line)
+                except ValueError:
+                    continue
+                if msg.get("request_id") == self.rid:
+                    return msg.get("data")
+        return None
+
+    def get(self, prop):
+        return self.cmd("get_property", prop)
+
+    def alive(self):
+        return self.proc.poll() is None
+
+    def quit(self):
+        self.cmd("quit")
+        try:
+            self.proc.wait(timeout=3)
+        except Exception:
+            self.proc.kill()
+
+
+_thumb_cache = {}
+def thumbnail(vid):
+    if vid in _thumb_cache:
+        return _thumb_cache[vid]
+    data = None
+    for name in ("mqdefault.jpg", "hqdefault.jpg"):
+        try:
+            with urllib.request.urlopen(f"https://i.ytimg.com/vi/{vid}/{name}", timeout=6) as r:
+                data = r.read()
+            break
+        except Exception:
+            continue
+    _thumb_cache[vid] = data
+    return data
+
+
+def draw_cover(vid):
+    out(f"{ESC}_Ga=d,d=A{ESC}\\")           # drop previous images
+    data = thumbnail(vid)
+    if not data:
+        return
+    payload = base64.standard_b64encode(data)
+    out(at(2, 2))
+    chunks = [payload[i:i + 4096] for i in range(0, len(payload), 4096)]
+    for i, ch in enumerate(chunks):
+        first = "a=T,f=100,t=d,c=%d,r=%d," % (IMG_COLS, IMG_ROWS) if i == 0 else ""
+        more = 1 if i < len(chunks) - 1 else 0
+        out(f"{ESC}_G{first}m={more};{ch.decode()}{ESC}\\")
+
+
+def fmt_time(t):
+    if t is None:
+        return "--:--"
+    t = int(t)
+    return f"{t // 60}:{t % 60:02d}"
+
+
+def vid_of(path):
+    if not path:
+        return None
+    m = re.search(r"[?&]v=([\w-]{11})", path) or re.search(r"/([\w-]{11})$", path)
+    return m.group(1) if m else None
+
+
+def render(m, state, cols):
+    title = m.get("media-title") or "loading…"
+    meta = m.get("metadata") or {}
+    artist = meta.get("uploader") or meta.get("artist") or ""
+    pos, dur = m.get("time-pos"), m.get("duration")
+    idx, total = m.get("playlist-pos"), m.get("playlist-count")
+    paused = m.get("pause")
+    vol = m.get("volume")
+
+    width = max(20, cols - TEXT_COL - 2)
+    out(at(2, TEXT_COL) + f"{ESC}[1m" + title[:width].ljust(width) + f"{ESC}[0m")
+    out(at(3, TEXT_COL) + f"{ESC}[2m" + artist[:width].ljust(width) + f"{ESC}[0m")
+
+    barw = max(10, width - 16)
+    frac = (pos / dur) if (pos and dur) else 0
+    filled = int(barw * min(max(frac, 0), 1))
+    bar = "━" * filled + "╸" + "─" * max(0, barw - filled - 1)
+    mark = "❚❚" if paused else "▶ "
+    out(at(5, TEXT_COL) + f"{mark} {bar} {fmt_time(pos)}/{fmt_time(dur)}".ljust(width) + clear_eol())
+
+    pos_txt = f"track {(idx or 0) + 1}/{total or '?'}   vol {int(vol or 0)}%"
+    out(at(6, TEXT_COL) + f"{ESC}[2m{pos_txt}{ESC}[0m".ljust(width) + clear_eol())
+
+    out(at(8, TEXT_COL) + f"{ESC}[2mnext{ESC}[0m" + clear_eol())
+    for i, entry in enumerate(state.get("upcoming", [])[:3]):
+        out(at(9 + i, TEXT_COL) + f"  {entry[:width - 2]}".ljust(width) + clear_eol())
+    for i in range(len(state.get("upcoming", [])), 3):
+        out(at(9 + i, TEXT_COL) + clear_eol())
+
+    out(at(14, 2) + f"{ESC}[2mspace pause   n next   p prev   +/- volume   q quit{ESC}[0m" + clear_eol())
+
+
+def main():
+    args = sys.argv[1:]
+    single = False
+    if args and args[0] in ("-1", "--single"):
+        single = True; args = args[1:]
+
+    if not args:
+        if not os.path.exists(CACHE):
+            sys.exit("nothing played yet — try: ytm <query>")
+        url = open(CACHE).read().strip()
+    elif args[0].startswith("http"):
+        url = args[0]
+    else:
+        vid = search(" ".join(args))
+        url = (f"https://www.youtube.com/watch?v={vid}" if single
+               else f"https://www.youtube.com/watch?v={vid}&list=RD{vid}")
+    os.makedirs(os.path.dirname(CACHE), exist_ok=True)
+    open(CACHE, "w").write(url)
+
+    m = Mpv(url)
+    fd = sys.stdin.fileno()
+    old = termios.tcgetattr(fd)
+    state, last_vid = {"upcoming": []}, None
+    try:
+        tty.setcbreak(fd)
+        out(f"{ESC}[?25l{ESC}[2J")
+        while m.alive():
+            cols = shutil.get_terminal_size((80, 24)).columns
+            props = {p: m.get(p) for p in
+                     ("media-title", "metadata", "time-pos", "duration",
+                      "playlist-pos", "playlist-count", "pause", "volume", "path")}
+            vid = vid_of(props.get("path"))
+            if vid and vid != last_vid:
+                draw_cover(vid); last_vid = vid
+                pl = m.get("playlist") or []
+                cur = props.get("playlist-pos") or 0
+                state["upcoming"] = [e.get("title") or e.get("filename", "") for e in pl[cur + 1:cur + 4]]
+            render(props, state, cols)
+
+            if select.select([sys.stdin], [], [], 0.5)[0]:
+                k = sys.stdin.read(1)
+                if k == "q":
+                    break
+                elif k == " ":
+                    m.cmd("cycle", "pause")
+                elif k in ("n", ">"):
+                    m.cmd("playlist-next", "force")
+                elif k in ("p", "<"):
+                    m.cmd("playlist-prev", "force")
+                elif k in ("+", "="):
+                    m.cmd("add", "volume", 5)
+                elif k == "-":
+                    m.cmd("add", "volume", -5)
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old)
+        out(f"{ESC}_Ga=d,d=A{ESC}\\{ESC}[?25h{ESC}[2J{ESC}[H")
+        m.quit()
+        try:
+            os.unlink(SOCK)
+        except OSError:
+            pass
+
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
+    main()
