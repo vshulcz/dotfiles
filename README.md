@@ -10,11 +10,8 @@ Personal macOS dotfiles managed with [chezmoi](https://chezmoi.io).
 | `~/.config/ghostty/` | [Ghostty](https://ghostty.org) terminal — `config` plus `appearance` and `keybinds` includes |
 | `~/.config/tmux/tmux.conf` | tmux — mouse on, vi copy mode, splits keep cwd |
 | `~/.config/yazi/` | [yazi](https://yazi-rs.github.io) file manager — Catppuccin Mocha, image previews |
-| `~/.config/termusic/tui.toml` | [termusic](https://github.com/tramhao/termusic) — local library player, cover art in the terminal |
-| `~/.local/bin/ytm` | pick a track, then YouTube's own mix keeps playing (mpv + yt-dlp + fzf) |
-| `~/.config/mpv/mpv.conf` | mpv — YouTube client workaround so ffmpeg can fetch streams |
 | `~/.config/lazygit/config.yml` | [lazygit](https://github.com/jesseduffield/lazygit) — full commit graph, Catppuccin colors |
-| `~/.config/k9s/` | [k9s](https://k9scli.io) Kubernetes TUI — Catppuccin Mocha skin (macOS gets a symlink from `Library/Application Support`) |
+| `~/.config/k9s/` | [k9s](https://k9scli.io) Kubernetes TUI — Catppuccin Mocha skin |
 | `~/.config/starship.toml` | [Starship](https://starship.rs) prompt — Tokyo Night powerline style |
 | `~/.gitconfig` | Git config — rebase pulls, auto push upstream, auto stash, SSH commit signing when the key is present |
 | `~/.gitignore_global` | Global gitignore — `.DS_Store`, `.env`, `*.local`, editor dirs, Claude local settings |
@@ -36,7 +33,7 @@ brew install starship
 
 # 5. Install Ghostty, tmux and yazi
 brew install --cask ghostty
-brew install tmux yazi sevenzip poppler fd ripgrep fzf zoxide imagemagick ffmpeg lazygit k9s mpv yt-dlp termusic
+brew install tmux yazi sevenzip poppler fd ripgrep fzf zoxide imagemagick ffmpeg lazygit k9s
 
 # yazi flavors are fetched separately
 ya pkg install
@@ -73,3 +70,9 @@ templated files end in `.tmpl`:
 itself off when `~/.ssh/id_ed25519_signing.pub` is missing, so a fresh machine can still commit.
 
 `README.md` is listed in `.chezmoiignore` — it belongs to the repo, not to `$HOME`.
+
+## Scripts
+
+`.chezmoiscripts/run_onchange_after_link-k9s-config.sh` points
+`~/Library/Application Support/k9s` at `~/.config/k9s`, because k9s ignores
+`XDG_CONFIG_HOME` on macOS. It is a no-op elsewhere and safe to re-run.
