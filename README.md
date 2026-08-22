@@ -10,6 +10,7 @@ Personal macOS dotfiles managed with [chezmoi](https://chezmoi.io).
 | `~/.config/ghostty/` | [Ghostty](https://ghostty.org) terminal — `config` plus `appearance` and `keybinds` includes |
 | `~/.config/tmux/tmux.conf` | tmux — mouse on, vi copy mode, splits keep cwd |
 | `~/.config/yazi/` | [yazi](https://yazi-rs.github.io) file manager — Catppuccin Mocha, image previews |
+| `~/.config/termusic/tui.toml` | [termusic](https://github.com/tramhao/termusic) — local library player, cover art in the terminal |
 | `~/.local/bin/ytm` | search YouTube and stream the audio in the terminal (mpv + yt-dlp + fzf) |
 | `~/.config/mpv/mpv.conf` | mpv — YouTube client workaround so ffmpeg can fetch streams |
 | `~/.config/lazygit/config.yml` | [lazygit](https://github.com/jesseduffield/lazygit) — full commit graph, Catppuccin colors |
@@ -35,7 +36,7 @@ brew install starship
 
 # 5. Install Ghostty, tmux and yazi
 brew install --cask ghostty
-brew install tmux yazi sevenzip poppler fd ripgrep fzf zoxide imagemagick ffmpeg lazygit k9s mpv yt-dlp
+brew install tmux yazi sevenzip poppler fd ripgrep fzf zoxide imagemagick ffmpeg lazygit k9s mpv yt-dlp termusic
 
 # yazi flavors are fetched separately
 ya pkg install
