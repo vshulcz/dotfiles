@@ -19,6 +19,7 @@ play() {
   echo "  space pause   > next   < prev   9/0 volume   q quit"
   mpv --no-video --ytdl-format='bestaudio/best' \
       --ytdl-raw-options-append=playlist-items="1-${QUEUE}" \
+      --ytdl-raw-options-append=yes-playlist= \
       --term-osd-bar --msg-level=all=error,statusline=status \
       --term-playing-msg='  ♪ ${media-title}' \
       --input-ipc-server="${TMPDIR:-/tmp}/ytm.sock" \
