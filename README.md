@@ -10,6 +10,7 @@ Personal macOS dotfiles managed with [chezmoi](https://chezmoi.io).
 | `~/.config/ghostty/` | [Ghostty](https://ghostty.org) terminal — `config` plus `appearance` and `keybinds` includes |
 | `~/.config/tmux/tmux.conf` | tmux — mouse on, vi copy mode, splits keep cwd |
 | `~/.config/yazi/` | [yazi](https://yazi-rs.github.io) file manager — Catppuccin Mocha, image previews |
+| `~/.local/bin/ci` | clipboard image out to a file, path back into the clipboard (Ghostty will not paste raw image data) |
 | `~/.config/lazygit/config.yml` | [lazygit](https://github.com/jesseduffield/lazygit) — full commit graph, Catppuccin colors |
 | `~/.config/k9s/` | [k9s](https://k9scli.io) Kubernetes TUI — Catppuccin Mocha skin |
 | `~/.config/starship.toml` | [Starship](https://starship.rs) prompt — Tokyo Night powerline style |
@@ -33,7 +34,7 @@ brew install starship
 
 # 5. Install Ghostty, tmux and yazi
 brew install --cask ghostty
-brew install tmux yazi sevenzip poppler fd ripgrep fzf zoxide imagemagick ffmpeg lazygit k9s
+brew install tmux yazi sevenzip poppler fd ripgrep fzf zoxide imagemagick ffmpeg lazygit k9s pngpaste
 
 # yazi flavors are fetched separately
 ya pkg install
