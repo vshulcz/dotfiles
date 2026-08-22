@@ -78,7 +78,12 @@ def build_queue(url):
 
 class Mpv:
     def __init__(self, video, box):
-        cmd = ["mpv", "--idle=yes", "--no-terminal", "--really-quiet", "--ytdl=no",
+        # video: let mpv resolve each track itself. Youtube serves video as
+        # fragmented DASH, and a bare stream URL hands us only the first
+        # fragment — playback hit EOF after ~3s and skipped to the next track.
+        # audio-only URLs are progressive, so those we can prefetch.
+        cmd = ["mpv", "--idle=yes", "--no-terminal", "--really-quiet",
+               "--ytdl=yes" if video else "--ytdl=no",
                "--gapless-audio=yes", f"--input-ipc-server={SOCK}"]
         if video:
             # mpv is the only thing allowed to write to the tty here: its kitty
@@ -262,9 +267,16 @@ def main():
     box = media_box()
     top = 2 + box[1] + 1
     m = Mpv(video, box)
-    res = Resolver(m, queue,
-                   "bestvideo[height<=480]+bestaudio/best" if video else "bestaudio/best")
-    res.start()
+    if video:
+        m.cmd_("loadfile", url, "replace", -1, {
+            "ytdl-raw-options-append": f"playlist-items=1-{QUEUE}",
+            "ytdl-format": "bestvideo[height<=480]+bestaudio/best",
+        })
+        m.cmd_("set_property", "ytdl-raw-options", "yes-playlist=")
+        res = None
+    else:
+        res = Resolver(m, queue, "bestaudio/best")
+        res.start()
 
     fd = sys.stdin.fileno()
     old = termios.tcgetattr(fd)
@@ -282,7 +294,7 @@ def main():
                 if 0 <= idx < len(queue) and queue[idx][0] != last_vid:
                     last_vid = queue[idx][0]
                     draw_cover(last_vid, box)
-                render(props, queue, top, width, res.done)
+                render(props, queue, top, width, res.done if res else 0)
 
             if select.select([sys.stdin], [], [], 0.4)[0]:
                 k = sys.stdin.read(1)
@@ -295,7 +307,7 @@ def main():
                 elif k == "-":
                     m.cmd_("set_property", "volume", max(0, int(m.get("volume") or 0) - 5))
     finally:
-        res.stop.set()
+        if res: res.stop.set()
         termios.tcsetattr(fd, termios.TCSADRAIN, old)
         out(f"{ESC}_Ga=d,d=A{ESC}\\{ESC}[?25h{ESC}[2J{ESC}[H")
         m.quit()
