@@ -1,18 +1,26 @@
 #!/usr/bin/env bash
-# ytm — search YouTube and stream the audio. No browser, no video, nothing saved.
-#   ytm radiohead weird fishes   search, then pick from a list
-#   ytm <url>                    play a track, album or playlist directly
-#   ytm                          resume whatever played last
+# ytm — pick a track, then let YouTube's own mix keep the music going.
+#   ytm bonobo kerala     search, pick one, play it and its radio mix
+#   ytm -1 bonobo kerala  just that track, no mix
+#   ytm <url>             play a track, album or playlist as given
+#   ytm                   resume whatever played last
 set -euo pipefail
 
 LAST="${XDG_CACHE_HOME:-$HOME/.cache}/ytm-last"
-COUNT="${YTM_RESULTS:-25}"
+COUNT="${YTM_RESULTS:-25}"     # search results to choose from
+QUEUE="${YTM_QUEUE:-40}"       # how much of the mix to queue up front
 mkdir -p "$(dirname "$LAST")"
+
+single=0
+if [ "${1-}" = "-1" ] || [ "${1-}" = "--single" ]; then single=1; shift; fi
 
 play() {
   printf '\033]0;ytm\007'
+  echo "  space pause   > next   < prev   9/0 volume   q quit"
   mpv --no-video --ytdl-format='bestaudio/best' \
+      --ytdl-raw-options-append=playlist-items="1-${QUEUE}" \
       --term-osd-bar --msg-level=all=error,statusline=status \
+      --term-playing-msg='  ♪ ${media-title}' \
       --input-ipc-server="${TMPDIR:-/tmp}/ytm.sock" \
       "$@"
 }
@@ -37,6 +45,12 @@ pick=$(
           --prompt="▶ $* > " --no-multi
 ) || exit 0
 
-url="https://www.youtube.com/watch?v=${pick%%|*}"
+id=${pick%%|*}
+if [ "$single" = 1 ]; then
+  url="https://www.youtube.com/watch?v=${id}"
+else
+  # RD<id> is YouTube's own mix seeded from that track — endless related music
+  url="https://www.youtube.com/watch?v=${id}&list=RD${id}"
+fi
 printf '%s' "$url" > "$LAST"
 play "$url"
