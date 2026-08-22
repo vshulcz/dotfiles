@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# ytm — search YouTube and stream the audio. No browser, no video, nothing saved.
+#   ytm radiohead weird fishes   search, then pick from a list
+#   ytm <url>                    play a track, album or playlist directly
+#   ytm                          resume whatever played last
+set -euo pipefail
+
+LAST="${XDG_CACHE_HOME:-$HOME/.cache}/ytm-last"
+COUNT="${YTM_RESULTS:-25}"
+mkdir -p "$(dirname "$LAST")"
+
+play() {
+  printf '\033]0;ytm\007'
+  mpv --no-video --ytdl-format='bestaudio/best' \
+      --term-osd-bar --msg-level=all=error,statusline=status \
+      --input-ipc-server="${TMPDIR:-/tmp}/ytm.sock" \
+      "$@"
+}
+
+if [ $# -eq 0 ]; then
+  [ -s "$LAST" ] || { echo "nothing played yet — try: ytm <query>"; exit 1; }
+  exec play "$(cat "$LAST")"
+fi
+
+if [[ "$1" == http*://* ]]; then
+  printf '%s' "$1" > "$LAST"
+  exec play "$1"
+fi
+
+pick=$(
+  yt-dlp --flat-playlist --no-warnings \
+         --print '%(id)s|%(channel)s — %(title)s [%(duration_string)s]' \
+         "ytsearch${COUNT}:$*" 2>/dev/null \
+    | fzf --with-nth='2..' --delimiter='|' --height=45% --reverse \
+          --prompt="▶ $* > " --no-multi
+) || exit 0
+
+url="https://www.youtube.com/watch?v=${pick%%|*}"
+printf '%s' "$url" > "$LAST"
+exec play "$url"
