@@ -111,7 +111,8 @@ class Mpv:
                     "--osd-level=3", "--osd-on-seek=msg-bar",
                     "--osd-status-msg=${media-title}\n"
                     "${time-pos} / ${duration}   "
-                    "track ${playlist-pos-1}/${playlist-count}   vol ${volume}%",
+                    "track ${playlist-pos-1}/${playlist-count}   vol ${volume}%\n"
+                    "space pause   n next   p prev   +/- volume   q quit",
                     f"--log-file={LOG}"]
         else:
             cmd += ["--no-video"]
@@ -307,6 +308,7 @@ def main():
     last_vid = None
     try:
         tty.setcbreak(fd)
+        out(f"{ESC}[?1000l{ESC}[?1002l{ESC}[?1003l{ESC}[?1006l{ESC}[?1015l")
         if not video:
             out(f"{ESC}[?25l{ESC}[2J")
         while m.alive():
@@ -322,10 +324,17 @@ def main():
 
             if select.select([sys.stdin], [], [], 0.4)[0]:
                 k = sys.stdin.read(1)
+                if k == ESC:
+                    # swallow the rest of an escape sequence (mouse reports,
+                    # arrow keys) instead of treating its bytes as commands
+                    while select.select([sys.stdin], [], [], 0.05)[0]:
+                        if sys.stdin.read(1).isalpha():
+                            break
+                    continue
                 if k == "q": break
                 elif k == " ": m.cmd_("cycle", "pause")
-                elif k in ("n", ">"): m.cmd_("playlist-next", "force")
-                elif k in ("p", "<"): m.cmd_("playlist-prev", "force")
+                elif k == "n": m.cmd_("playlist-next", "force")
+                elif k == "p": m.cmd_("playlist-prev", "force")
                 elif k in ("+", "="):
                     m.cmd_("set_property", "volume", min(100, int(m.get("volume") or 0) + 5))
                 elif k == "-":
@@ -333,7 +342,8 @@ def main():
     finally:
         if res: res.stop.set()
         termios.tcsetattr(fd, termios.TCSADRAIN, old)
-        out(f"{ESC}_Ga=d,d=A{ESC}\\{ESC}[?25h{ESC}[2J{ESC}[H")
+        out(f"{ESC}_Ga=d,d=A{ESC}\\{ESC}[?1000l{ESC}[?1002l{ESC}[?1003l"
+            f"{ESC}[?1006l{ESC}[?25h{ESC}[2J{ESC}[H")
         rc = m.proc.poll()
         m.quit()
         try: os.unlink(SOCK)
